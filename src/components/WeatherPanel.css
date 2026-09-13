@@ -1,0 +1,275 @@
+.weather-panel {
+  background: #0b1928;
+  border: 1px solid #172c3e;
+  border-radius: 11px;
+  padding: 18px;
+  color: #e8f1f8;
+}
+
+.weather-panel.loading,
+.weather-panel.error {
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #6f8799;
+  font-size: 11px;
+}
+
+.weather-panel.error {
+  color: #ef6a6a;
+}
+
+
+/* ================= HEADER ================= */
+
+.weather-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.weather-label {
+  display: block;
+  color: #4f7892;
+  font-size: 8px;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.weather-header h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+}
+
+.weather-live {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #41d58b;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.weather-live span {
+  width: 6px;
+  height: 6px;
+  background: #36d487;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #36d487;
+}
+
+
+/* ================= RISK RESULT ================= */
+
+.risk-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  margin-bottom: 12px;
+
+  background: rgba(239, 83, 80, 0.08);
+  border: 1px solid rgba(239, 83, 80, 0.22);
+  border-radius: 9px;
+}
+
+.risk-result-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.risk-result-icon {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  color: #ef6868;
+  background: rgba(239, 83, 80, 0.12);
+}
+
+.risk-result-left span {
+  display: block;
+  color: #637c8f;
+  font-size: 8px;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.risk-result-left strong {
+  display: block;
+  margin-top: 3px;
+
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px;
+  color: #ef6868;
+}
+
+.risk-score {
+  display: flex;
+  align-items: baseline;
+}
+
+.risk-score strong {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 27px;
+}
+
+.risk-score span {
+  color: #61798c;
+  font-size: 10px;
+}
+
+
+/* ================= WEATHER GRID ================= */
+
+.weather-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.weather-item {
+  padding: 12px;
+
+  background: #0d1d2d;
+  border: 1px solid #172e40;
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.weather-item > div:last-child {
+  min-width: 0;
+}
+
+.weather-item span {
+  display: block;
+  color: #60798d;
+  font-size: 9px;
+  margin-bottom: 4px;
+}
+
+.weather-item strong {
+  display: block;
+  color: #dce9f1;
+
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+}
+
+.weather-icon {
+  width: 32px;
+  height: 32px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 7px;
+}
+
+.weather-icon.temperature {
+  color: #ff7777;
+  background: rgba(255, 100, 100, 0.1);
+}
+
+.weather-icon.rain {
+  color: #42bdf2;
+  background: rgba(66, 189, 242, 0.1);
+}
+
+.weather-icon.humidity {
+  color: #6b9cff;
+  background: rgba(107, 156, 255, 0.1);
+}
+
+.weather-icon.wind {
+  color: #8bd8c2;
+  background: rgba(139, 216, 194, 0.1);
+}
+
+
+/* ================= RISK COMPONENTS ================= */
+
+.risk-components {
+  margin-top: 12px;
+  padding: 12px;
+
+  background: #091725;
+  border: 1px solid #172c3e;
+  border-radius: 8px;
+}
+
+.component-header {
+  color: #637b8d;
+  font-size: 9px;
+  margin-bottom: 8px;
+}
+
+.component-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 6px 0;
+
+  border-top: 1px solid #142839;
+
+  color: #71899b;
+  font-size: 9px;
+}
+
+.component-row strong {
+  color: #8fc9e5;
+}
+
+
+/* ================= SOURCE ================= */
+
+.data-source {
+  margin-top: 13px;
+  padding-top: 11px;
+
+  border-top: 1px solid #172c3e;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  color: #526c80;
+  font-size: 9px;
+}
+
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 900px) {
+
+  .weather-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+
+@media (max-width: 500px) {
+
+  .weather-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
