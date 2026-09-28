@@ -2,10 +2,30 @@
 
 :root {
   font-family: 'Inter', sans-serif;
-  color: #e8f1f8;
-  background: #07111f;
+
+  color: #172b3a;
+  background: #f4f7f9;
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+
+  --gov-navy: #0b263d;
+  --gov-blue: #075985;
+  --gov-blue-light: #0e7490;
+
+  --india-saffron: #f28c28;
+  --india-green: #138a5b;
+
+  --danger: #c62828;
+  --warning: #e59a23;
+  --success: #138a5b;
+
+  --surface: #ffffff;
+  --surface-soft: #f4f7f9;
+  --border: #d9e2e8;
+
+  --text: #172b3a;
+  --text-muted: #607686;
 }
 
 * {
@@ -14,17 +34,51 @@
   box-sizing: border-box;
 }
 
-body {
+html,
+body,
+#root {
   min-width: 320px;
+  min-height: 100%;
+}
+
+body {
   min-height: 100vh;
-  background: #07111f;
+  background: var(--surface-soft);
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font-family: inherit;
 }
 
 button {
   cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Indian tricolor identity line */
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 3px;
+
+  background: linear-gradient(
+    90deg,
+    var(--india-saffron) 0 33.33%,
+    #ffffff 33.33% 66.66%,
+    var(--india-green) 66.66% 100%
+  );
+
+  z-index: 9999;
 }
