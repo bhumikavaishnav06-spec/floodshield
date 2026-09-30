@@ -9,78 +9,64 @@ import {
 } from 'lucide-react'
 
 import { getWeatherData } from '../data/weatherApi'
-import { calculateFloodRisk } from '../data/riskEngine'
-import {
-  getTerrainData,
-} from '../data/terrainData'
+import { FloodShieldAPI } from '../lib/floodShieldApi'
 import './WeatherPanel.css'
 
 
-function WeatherPanel() {
-  const [weather, setWeather] = useState(null)
-  const [risk, setRisk] = useState(null)
-  const [terrain, setTerrain] = useState(null)
+function WeatherPanel({ villageName = null }) {
+  const [village, setVillage] = useState(null)
+  const [extra, setExtra] = useState({ humidity: null, wind: null })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    async function loadWeather() {
+    async function load() {
       try {
-        // Initial test location: Dehradun
-        const data = await getWeatherData(
-          30.3165,
-          78.0322
-        )
+        const res = await FloodShieldAPI.getRiskData()
 
-        setWeather(data)
+        if (res.status !== 'success' || !res.data?.length) {
+          throw new Error('No village data returned from backend')
+        }
 
-        // Current rainfall
-        const rainfall = data.current.rain ?? 0
+        // Pick a specific village if given, otherwise auto-feature
+        // the highest-risk village — great for a live demo.
+        let target = res.data[0]
 
-        // Get hourly rainfall
-        const hourlyRain = data.hourly?.precipitation ?? []
+        if (villageName) {
+          target =
+            res.data.find(
+              (v) => v.name.toLowerCase() === villageName.toLowerCase()
+            ) || target
+        } else {
+          target = res.data.reduce((worst, v) =>
+            v.risk_score > worst.risk_score ? v : worst
+          )
+        }
 
-        // Estimate recent rainfall intensity
-        const recentRain = hourlyRain.slice(0, 3)
+        setVillage(target)
 
-        const rainfallIntensity =
-          recentRain.length > 0
-            ? recentRain.reduce(
-                (total, value) => total + value,
-                0
-              )
-            : rainfall
-
-        // Soil moisture
-        const soilMoisture =
-          data.hourly?.soil_moisture_0_to_7cm?.[0] ?? 0
-
-        // Temporary terrain value.
-        // Later this will come from real DEM/slope data.
-       const terrain = getTerrainData('dehradun')
-       setTerrain(terrain)
-
-const slope = terrain.slope
-
-        const riskResult = calculateFloodRisk({
-          rainfall,
-          rainfallIntensity,
-          soilMoisture,
-          slope,
-        })
-
-        setRisk(riskResult)
+        // Supplemental atmospheric data (humidity, wind) —
+        // not tracked by backend, fetched directly for display only.
+        try {
+          const weatherRaw = await getWeatherData(target.lat, target.lon)
+          setExtra({
+            humidity: weatherRaw.current?.relative_humidity_2m ?? null,
+            wind: weatherRaw.current?.wind_speed_10m ?? null,
+          })
+        } catch {
+          setExtra({ humidity: null, wind: null })
+        }
 
       } catch (err) {
         console.error(err)
-        setError('Unable to load live weather data')
+        setError('Unable to load live flood intelligence data')
       } finally {
         setLoading(false)
       }
     }
 
-    loadWeather()
-  }, [])
+    load()
+  }, [villageName])
 
 
   if (loading) {
@@ -92,18 +78,15 @@ const slope = terrain.slope
     )
   }
 
-
-  if (error) {
+  if (error || !village) {
     return (
       <div className="weather-panel error">
-        {error}
+        {error || 'No data available'}
       </div>
     )
   }
 
-
-  const current = weather.current
-
+  const { weather, breakdown, cloudburst, glof } = village
 
   return (
     <div className="weather-panel">
@@ -118,7 +101,7 @@ const slope = terrain.slope
           </span>
 
           <h3>
-            Regional Conditions
+            Regional Conditions — {village.name}
           </h3>
         </div>
 
@@ -132,202 +115,132 @@ const slope = terrain.slope
 
       {/* RISK RESULT */}
 
-      {risk && (
-        <div className="risk-result">
+      <div className="risk-result">
 
-          <div className="risk-result-left">
+        <div className="risk-result-left">
 
-            <div className="risk-result-icon">
-              <ShieldAlert size={22} />
-            </div>
-
-            <div>
-              <span>FLOOD RISK</span>
-
-              <strong>
-                {risk.level}
-              </strong>
-            </div>
-
-          </div>
-
-          <div className="risk-score">
-
-            <strong>
-              {risk.score}
-            </strong>
-
-            <span>/ 100</span>
-
-          </div>
-
-        </div>
-      )}
-
-
-      {/* WEATHER DATA */}
-
-      <div className="weather-grid">
-
-        {/* TEMPERATURE */}
-
-        <div className="weather-item">
-
-          <div className="weather-icon temperature">
-            <Thermometer size={18} />
+          <div className="risk-result-icon">
+            <ShieldAlert size={22} />
           </div>
 
           <div>
-            <span>Temperature</span>
+            <span>FLOOD RISK</span>
 
             <strong>
-              {current.temperature_2m}°C
+              {village.risk_level}
             </strong>
           </div>
 
         </div>
 
+        <div className="risk-score">
 
-        {/* RAIN */}
+          <strong>
+            {village.risk_score}
+          </strong>
 
-        <div className="weather-item">
-
-          <div className="weather-icon rain">
-            <CloudRain size={18} />
-          </div>
-
-          <div>
-            <span>Rainfall</span>
-
-            <strong>
-              {current.rain} mm
-            </strong>
-          </div>
-
-        </div>
-
-
-        {/* HUMIDITY */}
-
-        <div className="weather-item">
-
-          <div className="weather-icon humidity">
-            <Droplets size={18} />
-          </div>
-
-          <div>
-            <span>Humidity</span>
-
-            <strong>
-              {current.relative_humidity_2m}%
-            </strong>
-          </div>
-
-        </div>
-
-
-        {/* WIND */}
-
-        <div className="weather-item">
-
-          <div className="weather-icon wind">
-            <Wind size={18} />
-          </div>
-
-          <div>
-            <span>Wind Speed</span>
-
-            <strong>
-              {current.wind_speed_10m} km/h
-            </strong>
-          </div>
+          <span>/ 100</span>
 
         </div>
 
       </div>
 
 
-      {/* RISK COMPONENTS */}
+      {/* WEATHER DATA */}
 
-      {risk && terrain && (
-  <div className="risk-components">
+      <div className="weather-grid">
 
-    <div className="component-header">
-      Risk calculation components
-    </div>
+        <div className="weather-item">
+          <div className="weather-icon temperature">
+            <Thermometer size={18} />
+          </div>
+          <div>
+            <span>Temperature</span>
+            <strong>{weather.temp}°C</strong>
+          </div>
+        </div>
 
-    <div className="component-row">
+        <div className="weather-item">
+          <div className="weather-icon rain">
+            <CloudRain size={18} />
+          </div>
+          <div>
+            <span>Rainfall (24h)</span>
+            <strong>{weather.rain} mm</strong>
+          </div>
+        </div>
 
-      <span>Rainfall</span>
+        <div className="weather-item">
+          <div className="weather-icon humidity">
+            <Droplets size={18} />
+          </div>
+          <div>
+            <span>Humidity</span>
+            <strong>{extra.humidity !== null ? `${extra.humidity}%` : 'N/A'}</strong>
+          </div>
+        </div>
 
-      <strong>
-        +{risk.components.rainfallScore}
-      </strong>
+        <div className="weather-item">
+          <div className="weather-icon wind">
+            <Wind size={18} />
+          </div>
+          <div>
+            <span>Wind Speed</span>
+            <strong>{extra.wind !== null ? `${extra.wind} km/h` : 'N/A'}</strong>
+          </div>
+        </div>
 
-    </div>
+      </div>
 
-    <div className="component-row">
 
-      <span>Rainfall intensity</span>
+      {/* RISK COMPONENTS — now multi-hazard */}
 
-      <strong>
-        +{risk.components.intensityScore}
-      </strong>
+      <div className="risk-components">
 
-    </div>
+        <div className="component-header">
+          Multi-hazard risk breakdown
+        </div>
 
-    <div className="component-row">
+        <div className="component-row">
+          <span>Rainfall score</span>
+          <strong>+{breakdown.rainfall}</strong>
+        </div>
 
-      <span>Soil moisture</span>
+        <div className="component-row">
+          <span>Soil saturation</span>
+          <strong>+{breakdown.soil}</strong>
+        </div>
 
-      <strong>
-        +{risk.components.soilScore}
-      </strong>
+        <div className="component-row">
+          <span>Terrain slope</span>
+          <strong>+{breakdown.slope}</strong>
+        </div>
 
-    </div>
+        <div className="component-row">
+          <span>Elevation</span>
+          <strong>{village.elev} m</strong>
+        </div>
 
-    <div className="component-row">
+        <div className="component-row">
+          <span>Cloudburst status</span>
+          <strong>{cloudburst.level.replace(/_/g, ' ')}</strong>
+        </div>
 
-      <span>Terrain slope</span>
+        <div className="component-row">
+          <span>GLOF risk</span>
+          <strong>
+            {glof.applicable ? `${glof.risk_level} (${glof.lake_name})` : 'N/A'}
+          </strong>
+        </div>
 
-      <strong>
-        {terrain.slope}°
-      </strong>
-
-    </div>
-
-    <div className="component-row">
-
-      <span>Elevation</span>
-
-      <strong>
-        {terrain.elevation} m
-      </strong>
-
-    </div>
-
-    <div className="component-row">
-
-      <span>Terrain type</span>
-
-      <strong>
-        {terrain.terrainType}
-      </strong>
-
-    </div>
-
-  </div>
-)}
+      </div>
 
 
       {/* SOURCE */}
 
       <div className="data-source">
-
         <Activity size={13} />
-
-        Live meteorological data → FloodShield Risk Engine
-
+        Live meteorological data → FloodShield Multi-Hazard Risk Engine
       </div>
 
     </div>
